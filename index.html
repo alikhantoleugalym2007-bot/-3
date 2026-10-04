@@ -1,0 +1,403 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Стефан–Больцман зертханасы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=PT+Sans+Caption:wght@700&family=PT+Mono&display=swap">
+<style>
+/* Layout: зертхана үстелі — жоғарыда тірі схема, астында басқару пульті мен пирометр окуляры, соңында өлшеу кестесі */
+:root{
+  --bg:#EDF1EE; --panel:#F8FAF8; --ink:#1B2420; --muted:#5A6962; --line:#C8D2CC;
+  --wire:#56645E; --accent:#C2561A; --accent-soft:#F3D9C8; --good:#2E7A4E; --warn:#A8661A;
+  --f-display:"PT Sans Caption","PT Sans",system-ui,sans-serif;
+  --f-body:"PT Sans",system-ui,sans-serif;
+  --f-mono:"PT Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111715; --panel:#19211E; --ink:#E2E9E5; --muted:#92A29A; --line:#2D3935;
+  --wire:#8C9D95; --accent:#F08A4B; --accent-soft:#3A2518; --good:#5FC08A; --warn:#E0A552; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111715; --panel:#19211E; --ink:#E2E9E5; --muted:#92A29A; --line:#2D3935;
+  --wire:#8C9D95; --accent:#F08A4B; --accent-soft:#3A2518; --good:#5FC08A; --warn:#E0A552; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:grid;gap:20px}
+h1{font-family:var(--f-display);font-size:clamp(22px,3.2vw,30px);line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:17px;margin:0 0 10px}
+.lead{color:var(--muted);margin:6px 0 0;max-width:70ch}
+.eq{font-family:var(--f-mono);background:var(--accent-soft);padding:1px 6px;border-radius:4px;white-space:nowrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.schem{overflow-x:auto;padding:8px}
+.schem svg{display:block;min-width:720px;width:100%;height:auto}
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:520px){.cols{grid-template-columns:1fr}}
+.group{display:grid;gap:10px;min-width:0}
+.group h3{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+label.sl{display:grid;gap:2px;font-size:14px}
+label.sl span{display:flex;justify-content:space-between;gap:8px}
+label.sl b{font-family:var(--f-mono);font-weight:400}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.btn{font:inherit;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px}
+.meters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.meter{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg)}
+.meter small{display:block;color:var(--muted);font-size:12px}
+.meter output{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums}
+.eyewrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+#eye{width:200px;height:200px;border-radius:50%;background:#000;flex:none;max-width:100%}
+.eyeinfo{flex:1 1 180px;min-width:0;display:grid;gap:8px}
+.status{font-weight:700;padding:6px 10px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
+.status.ok{color:var(--good);border-color:var(--good)}
+.status.warn{color:var(--warn)}
+#calib{width:100%;height:auto;display:block}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px;min-width:640px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-weight:700;color:var(--muted);font-size:12px}
+td:first-child,th:first-child{text-align:left}
+td.x button{border:0;background:none;color:var(--muted);cursor:pointer;font:inherit}
+.summary{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;font-family:var(--f-mono)}
+.note{color:var(--muted);font-size:13px;margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);padding:4px 8px 0}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:middle}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+.w{stroke:var(--wire);stroke-width:2;fill:none}
+.w.on{stroke:var(--accent)}
+.comp{fill:var(--panel);stroke:var(--wire);stroke-width:2}
+.sw{cursor:pointer}
+.sw:hover .swblade{stroke:var(--accent)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ОТТ-9. Стефан – Больцман тұрақтысын анықтау</h1>
+    <p class="lead">Екі тізбектегі токтың жүрісі. Сол жақта Л₁ қыздыру шамының тізбегі (сурет 16.1), оң жақта ЭОП-66 пирометрлік Л₂ шамының тізбегі (сурет 16.2а). Нүктелер токтың шартты бағытын (+ → −) көрсетеді, жылдамдығы ток күшіне пропорционал. Кілттерді схемада басып қосуға болады.</p>
+  </header>
+
+  <section class="card schem" aria-label="Тізбек схемасы">
+    <svg id="svg" viewBox="0 0 1000 400" role="img" aria-label="Л1 және Л2 шамдарының тізбектері">
+      <defs>
+        <radialGradient id="glowG1"><stop id="gs1a" offset="0" stop-color="#fff" stop-opacity=".9"/><stop id="gs1b" offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><radialGradient id="glowG2"><stop id="gs2a" offset="0" stop-color="#fff" stop-opacity=".9"/><stop id="gs2b" offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        <linearGradient id="beamG" x1="0" x2="1"><stop offset="0" stop-color="#ffb14a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb14a" stop-opacity=".1"/></linearGradient>
+      </defs>
+
+      <!-- ===== 1-тізбек ===== -->
+      <polyline id="w1" class="w" points="60,190 60,100 400,100 400,320 60,320 60,230"/>
+      <polyline id="wv" class="w" points="400,150 330,150 330,270 400,270"/>
+      <circle cx="400" cy="150" r="3.5" fill="var(--wire)"/><circle cx="400" cy="270" r="3.5" fill="var(--wire)"/>
+      <g id="dots1"></g><g id="dotsV"></g>
+
+      <!-- U батарея -->
+      <rect x="40" y="190" width="40" height="40" fill="var(--panel)"/>
+      <line x1="42" y1="202" x2="78" y2="202" stroke="var(--wire)" stroke-width="3"/>
+      <line x1="50" y1="216" x2="70" y2="216" stroke="var(--wire)" stroke-width="5"/>
+      <line x1="60" y1="190" x2="60" y2="202" stroke="var(--wire)" stroke-width="2"/>
+      <line x1="60" y1="216" x2="60" y2="230" stroke="var(--wire)" stroke-width="2"/>
+      <text x="24" y="206" font-size="13">+</text><text x="26" y="224" font-size="15">−</text>
+      <text x="4" y="164" font-size="15" font-weight="700">U = 12 В</text>
+
+      <!-- K1 кілт -->
+      <g class="sw" id="k1" tabindex="0" role="button" aria-label="К1 кілтін ауыстыру">
+        <rect x="100" y="80" width="60" height="40" fill="transparent"/>
+        <rect x="108" y="96" width="44" height="8" fill="var(--panel)"/>
+        <circle cx="110" cy="100" r="3" fill="var(--wire)"/><circle cx="150" cy="100" r="3" fill="var(--wire)"/>
+        <line class="swblade" id="k1b" x1="110" y1="100" x2="148" y2="100" stroke="var(--wire)" stroke-width="2.5"/>
+        <text x="122" y="80" font-size="13">К₁</text>
+      </g>
+
+      <!-- A1 -->
+      <circle class="comp" cx="250" cy="100" r="17"/><text x="250" y="105" font-size="14" text-anchor="middle" font-weight="700">A₁</text>
+      <text id="tA1" x="250" y="136" font-size="13" text-anchor="middle" font-family="PT Mono">0.00 А</text>
+
+      <!-- R1 реостат -->
+      <rect class="comp" x="190" y="310" width="90" height="20" rx="2"/>
+      <line id="r1arrow" x1="235" y1="352" x2="235" y2="333" stroke="var(--wire)" stroke-width="2"/>
+      <polygon id="r1head" points="230,338 240,338 235,331" fill="var(--wire)"/>
+      <text x="152" y="306" font-size="14" font-weight="700">R₁</text>
+      <text id="tR1" x="235" y="372" font-size="13" text-anchor="middle" font-family="PT Mono">0 Ом</text>
+
+      <!-- V1 -->
+      <circle class="comp" cx="330" cy="210" r="17"/><text x="330" y="215" font-size="14" text-anchor="middle" font-weight="700">V₁</text>
+      <text id="tV1" x="290" y="250" font-size="13" text-anchor="end" font-family="PT Mono">0.00 В</text>
+
+      <!-- Л1 шам -->
+      <circle id="glow1" cx="400" cy="210" r="46" fill="url(#glowG1)" opacity="0"/>
+      <circle id="lamp1" cx="400" cy="210" r="18" fill="var(--panel)" stroke="var(--wire)" stroke-width="2"/>
+      <line x1="387" y1="197" x2="413" y2="223" stroke="var(--wire)" stroke-width="2"/><line x1="413" y1="197" x2="387" y2="223" stroke="var(--wire)" stroke-width="2"/>
+      <text x="420" y="248" font-size="14" font-weight="700">Л₁</text>
+
+      <!-- Сәуле -->
+      <polygon id="beam" points="418,203 505,180 505,240 418,217" fill="url(#beamG)" opacity="0"/>
+
+      <!-- ===== Пирометр түтігі ===== -->
+      <rect x="490" y="175" width="390" height="70" rx="6" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <ellipse cx="505" cy="210" rx="6" ry="30" fill="var(--accent-soft)" stroke="var(--muted)"/>
+      <text x="495" y="266" font-size="12" fill="var(--muted)">объектив L₁</text>
+      <line x1="790" y1="177" x2="790" y2="200" stroke="var(--muted)" stroke-width="3"/><line x1="790" y1="220" x2="790" y2="243" stroke="var(--muted)" stroke-width="3"/>
+      <text x="782" y="266" font-size="12" fill="var(--muted)">Д</text>
+      <ellipse cx="862" cy="210" rx="5" ry="22" fill="var(--accent-soft)" stroke="var(--muted)"/>
+      <text x="836" y="266" font-size="12" fill="var(--muted)">окуляр L₂</text>
+      <text x="560" y="194" font-size="12" fill="var(--muted)">3Т көру түтігі</text>
+
+      <!-- ===== 2-тізбек ===== -->
+      <polyline id="w2" class="w" points="960,190 960,90 700,90 700,360 960,360 960,230"/>
+      <g id="dots2"></g>
+
+      <!-- Л2 шам -->
+      <circle id="glow2" cx="700" cy="210" r="34" fill="url(#glowG2)" opacity="0"/>
+      <circle id="lamp2" cx="700" cy="210" r="16" fill="var(--panel)" stroke="var(--wire)" stroke-width="2"/>
+      <line x1="689" y1="199" x2="711" y2="221" stroke="var(--wire)" stroke-width="2"/><line x1="711" y1="199" x2="689" y2="221" stroke="var(--wire)" stroke-width="2"/>
+      <text x="716" y="236" font-size="14" font-weight="700">Л₂</text>
+
+      <!-- K2 -->
+      <g class="sw" id="k2" tabindex="0" role="button" aria-label="К2 кілтін ауыстыру">
+        <rect x="750" y="70" width="60" height="40" fill="transparent"/>
+        <rect x="758" y="86" width="44" height="8" fill="var(--panel)"/>
+        <circle cx="760" cy="90" r="3" fill="var(--wire)"/><circle cx="800" cy="90" r="3" fill="var(--wire)"/>
+        <line class="swblade" id="k2b" x1="760" y1="90" x2="798" y2="90" stroke="var(--wire)" stroke-width="2.5"/>
+        <text x="772" y="70" font-size="13">К₂</text>
+      </g>
+
+      <!-- A2 -->
+      <circle class="comp" cx="880" cy="90" r="17"/><text x="880" y="95" font-size="14" text-anchor="middle" font-weight="700">A₂</text>
+      <text id="tA2" x="880" y="60" font-size="13" text-anchor="middle" font-family="PT Mono">0.000 А</text>
+
+      <!-- R2, R -->
+      <rect class="comp" x="735" y="350" width="80" height="20" rx="2"/>
+      <line id="r2arrow" x1="775" y1="392" x2="775" y2="373" stroke="var(--wire)" stroke-width="2"/>
+      <polygon id="r2head" points="770,378 780,378 775,371" fill="var(--wire)"/>
+      <text x="740" y="342" font-size="14" font-weight="700">R₂</text>
+      <rect class="comp" x="850" y="351" width="60" height="18" rx="2"/>
+      <line x1="848" y1="378" x2="912" y2="342" stroke="var(--wire)" stroke-width="1.8"/><polygon points="912,342 902,344 907,351" fill="var(--wire)"/>
+      <text x="872" y="342" font-size="14" font-weight="700">R</text>
+
+      <!-- U2 -->
+      <rect x="940" y="190" width="40" height="40" fill="var(--panel)"/>
+      <line x1="942" y1="202" x2="978" y2="202" stroke="var(--wire)" stroke-width="3"/>
+      <line x1="950" y1="216" x2="970" y2="216" stroke="var(--wire)" stroke-width="5"/>
+      <line x1="960" y1="190" x2="960" y2="202" stroke="var(--wire)" stroke-width="2"/>
+      <line x1="960" y1="216" x2="960" y2="230" stroke="var(--wire)" stroke-width="2"/>
+      <text x="918" y="164" font-size="15" font-weight="700">U₂ = 3 В</text>
+    </svg>
+    <div class="legend"><span><i></i>ток бағыты (+ → −)</span><span>V₁ тармағындағы ток өте аз (R<sub>V</sub> = 2 кОм), сондықтан нүктелері баяу</span></div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Басқару пульті</h2>
+      <div class="cols">
+        <div class="group">
+          <h3>Л₁ тізбегі</h3>
+          <label class="toggle"><input type="checkbox" id="c1" checked> К₁ кілті тұйық</label>
+          <label class="sl" for="r1"><span>R₁ реостат <b id="r1v">5.0 Ом</b></span><input type="range" id="r1" min="0" max="30" step="0.1" value="5"></label>
+          <div class="meters">
+            <div class="meter"><small>I₁, А</small><output id="mI1">0.00</output></div>
+            <div class="meter"><small>U₁, В</small><output id="mU1">0.00</output></div>
+            <div class="meter"><small>P = I₁U₁, Вт</small><output id="mP">0.0</output></div>
+          </div>
+        </div>
+        <div class="group">
+          <h3>Пирометр тізбегі</h3>
+          <label class="toggle"><input type="checkbox" id="c2" checked> К₂ кілті тұйық</label>
+          <label class="sl" for="r2"><span>R₂ реостат (өрескел) <b id="r2v">3.00 Ом</b></span><input type="range" id="r2" min="0" max="15" step="0.05" value="3"></label>
+          <label class="sl" for="rf"><span>R айнымалы кедергі (дәл) <b id="rfv">0.50 Ом</b></span><input type="range" id="rf" min="0" max="2" step="0.01" value="0.5"></label>
+        </div>
+      </div>
+      <p class="note" style="margin-top:12px">Тәртібі: R₁ арқылы Л₁ тогын өзгертіп, әр жағдайда R₂ мен R арқылы Л₂ қылы Л₁ фонында көрінбей кеткенше теңестіріңіз, сосын нәтижені кестеге жазыңыз.</p>
+    </section>
+
+    <section class="card">
+      <h2>Пирометр окуляры</h2>
+      <div class="eyewrap">
+        <canvas id="eye" width="400" height="400" aria-label="Окулярдағы көрініс"></canvas>
+        <div class="eyeinfo">
+          <div id="status" class="status">—</div>
+          <div class="meter"><small>A₂ көрсетуі, А</small><output id="mI2">0.000</output></div>
+          <div class="meter"><small>Градуировка бойынша t, °C</small><output id="mT">—</output></div>
+          <label class="toggle"><input type="checkbox" id="showT"> Л₁-дің шын температурасын көрсету</label>
+          <div id="trueT" class="note" hidden></div>
+        </div>
+      </div>
+      <svg id="calib" viewBox="0 0 360 170" aria-label="Пирометрлік шамның градуировкалық қисығы (сурет 16.3)"></svg>
+      <p class="note">Градуировкалық қисық t(I₂), сурет 16.3 сияқты.</p>
+    </section>
+  </div>
+
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h2 style="margin:0">16.1-кесте. Өлшеу нәтижелері</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" id="rec">Кестеге жазу</button>
+        <button class="btn" id="clr">Кестені тазалау</button>
+      </div>
+    </div>
+    <p class="note" style="margin:8px 0">Есептеу: <span class="eq">σ = I₁·U₁ / (a·S·(T⁴ − T₀⁴))</span>, мұнда a = 0,32 (вольфрам), S = 0,30 см² = 3,0·10⁻⁵ м², T₀ = 293 К.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>№</th><th>I₁, А</th><th>U₁, В</th><th>P, Вт</th><th>I₂, А</th><th>t, °C</th><th>T, К</th><th>σ, 10⁻⁸ Вт/(м²·К⁴)</th><th></th></tr></thead>
+      <tbody id="tb"><tr><td colspan="9" class="note" style="text-align:left">Әзірге жазба жоқ. Қылды теңестіріп, «Кестеге жазу» батырмасын басыңыз.</td></tr></tbody>
+    </table></div>
+    <div class="summary" id="sum"></div>
+  </section>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const SIG=5.670e-8, A=0.32, S=3.0e-5, T0=293, U1s=12, U2s=3, RV=2000;
+const R0=0.59, RL2=2.5;
+const RL=T=>R0*Math.pow(T/T0,1.2);
+// градуировка: I2 (А) -> t (°C)
+const CAL=[[0.10,250],[0.20,600],[0.30,930],[0.40,1200],[0.50,1400],[0.60,1580],[0.70,1740],[0.80,1880],[0.90,2000],[1.00,2110],[1.10,2210],[1.20,2300],[1.30,2385]];
+function calib(I){ if(I<=CAL[0][0]) return 20+(CAL[0][1]-20)*I/CAL[0][0];
+  for(let i=1;i<CAL.length;i++) if(I<=CAL[i][0]){const [a,b]=CAL[i-1],[c,d]=CAL[i];return b+(d-b)*(I-a)/(c-a);}
+  return CAL[CAL.length-1][1]; }
+
+const st={k1:true,k2:true,r1:5,r2:3,rf:.5,T1:T0,T2:T0,run:true};
+
+function teq1(){ if(!st.k1) return T0;
+  const k=A*SIG*S; let lo=T0, hi=5000;
+  for(let i=0;i<60;i++){const T=(lo+hi)/2, R=RL(T), I=U1s/(st.r1+R), g=I*I*R-k*(T**4-T0**4); if(g>0) lo=T; else hi=T;}
+  return (lo+hi)/2; }
+function i2(){ return st.k2? U2s/(RL2+st.r2+st.rf):0; }
+
+// ---- wires & particles ----
+function poly(id){const p=$(id).getAttribute('points').trim().split(/\s+/).map(s=>s.split(',').map(Number));
+  const seg=[];let L=0;for(let i=1;i<p.length;i++){const d=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);seg.push([p[i-1],p[i],L,d]);L+=d;}return{seg,L};}
+function at(P,s){s=((s%P.L)+P.L)%P.L;for(const [a,b,o,d] of P.seg){if(s<=o+d){const t=(s-o)/d;return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];}}return P.seg[0][0];}
+const NS='http://www.w3.org/2000/svg';
+function mkDots(gid,P,gap,r){const g=$(gid),n=Math.floor(P.L/gap),arr=[];for(let i=0;i<n;i++){const c=document.createElementNS(NS,'circle');c.setAttribute('r',r);c.setAttribute('fill','var(--accent)');g.appendChild(c);arr.push(c);}return{P,arr,gap:P.L/n,off:0};}
+const D1=mkDots('dots1',poly('w1'),22,3.3), D2=mkDots('dots2',poly('w2'),22,3.3), DV=mkDots('dotsV',poly('wv'),30,2.4);
+// V-тармағы: жол нүктелерін бөлек (ашық) полилиния бойымен
+function drawDots(D,on,closed){D.arr.forEach((c,i)=>{let s=i*D.gap+D.off; if(!closed) s=((s%D.P.L)+D.P.L)%D.P.L;
+  const [x,y]=at(D.P,s); c.setAttribute('cx',x.toFixed(1)); c.setAttribute('cy',y.toFixed(1)); c.style.display=on?'':'none';});}
+
+// ---- colour ----
+function bbRGB(T){ // жуық қара дене түсі
+  const t=T/100; let r,g,b;
+  if(t<=66){r=255;g=99.47*Math.log(t)-161.12;b=t<=19?0:138.5*Math.log(t-10)-305.04;}
+  else{r=329.7*Math.pow(t-60,-0.1332);g=288.12*Math.pow(t-60,-0.0755);b=255;}
+  const c=v=>Math.max(0,Math.min(255,v|0));return[c(r),c(g),c(b)];}
+const LAM=650e-9,C2=0.014388;
+const lnB=T=>-Math.log(Math.expm1(C2/(LAM*T)));
+const Lo=lnB(1100),Hi=lnB(2700);
+const lum=T=>T<800?0:Math.max(0,Math.min(1,(lnB(T)-Lo)/(Hi-Lo)));
+
+// ---- eyepiece ----
+const eye=$('eye'),cx=eye.getContext('2d');
+function redCol(L){return `rgb(${Math.round(255*Math.pow(L,.7))},${Math.round(120*Math.pow(L,1.6))},${Math.round(40*Math.pow(L,2.4))})`;}
+function drawEye(){const W=400,L1=lum(st.T1),L2=lum(st.T2);
+  cx.clearRect(0,0,W,W);cx.save();cx.beginPath();cx.arc(200,200,196,0,Math.PI*2);cx.clip();
+  cx.fillStyle='#050505';cx.fillRect(0,0,W,W);
+  // Л1 қылының кескіні (фон)
+  cx.fillStyle=redCol(L1);cx.fillRect(0,0,W,W);
+  // Л2 доға тәрізді қыл
+  cx.strokeStyle=redCol(L2);cx.lineWidth=11;cx.lineCap='round';
+  cx.beginPath();cx.moveTo(-10,250);cx.quadraticCurveTo(200,110,410,250);cx.stroke();
+  // диафрагма
+  const g=cx.createRadialGradient(200,200,120,200,200,200);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.75)');
+  cx.fillStyle=g;cx.fillRect(0,0,W,W);cx.restore();
+  cx.strokeStyle='#333';cx.lineWidth=6;cx.beginPath();cx.arc(200,200,196,0,Math.PI*2);cx.stroke();}
+
+// ---- calibration chart ----
+const cal=$('calib');const X0=48,X1=345,Y0=140,Y1=12,imin=.3,imax=1.2,tmin=900,tmax=2300;
+const sx=i=>X0+(i-imin)/(imax-imin)*(X1-X0), sy=t=>Y0-(t-tmin)/(tmax-tmin)*(Y0-Y1);
+(function(){let h='';
+ for(let t=1000;t<=2200;t+=200){h+=`<line x1="${X0}" x2="${X1}" y1="${sy(t)}" y2="${sy(t)}" stroke="var(--line)"/><text x="${X0-6}" y="${sy(t)+4}" font-size="11" text-anchor="end" fill="var(--muted)">${t}</text>`;}
+ for(let i=.4;i<=1.201;i+=.2){h+=`<text x="${sx(i)}" y="${Y0+16}" font-size="11" text-anchor="middle" fill="var(--muted)">${i.toFixed(1)}</text>`;}
+ h+=`<rect x="${X0}" y="${sy(2000)}" width="${X1-X0}" height="${sy(1400)-sy(2000)}" fill="var(--accent-soft)" opacity=".6"/>`;
+ h+=`<polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${CAL.filter(p=>p[0]>=imin&&p[0]<=imax).map(p=>sx(p[0])+','+sy(p[1])).join(' ')}"/>`;
+ h+=`<text x="${X1}" y="${Y0+30}" font-size="11" text-anchor="end" fill="var(--muted)">I₂, А</text><text x="4" y="10" font-size="11" fill="var(--muted)">t, °C</text>`;
+ h+=`<g id="mk"><line id="mkv" stroke="var(--ink)" stroke-dasharray="3 3"/><line id="mkh" stroke="var(--ink)" stroke-dasharray="3 3"/><circle id="mkc" r="4.5" fill="var(--ink)"/></g>`;
+ cal.innerHTML=h;})();
+
+// ---- controls ----
+function bind(){
+  $('c1').onchange=e=>{st.k1=e.target.checked;};
+  $('c2').onchange=e=>{st.k2=e.target.checked;};
+  $('k1').onclick=()=>{$('c1').click();};$('k2').onclick=()=>{$('c2').click();};
+  ['k1','k2'].forEach(k=>$(k).onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$(k).onclick();}});
+  $('r1').oninput=e=>{st.r1=+e.target.value;};$('r2').oninput=e=>{st.r2=+e.target.value;};$('rf').oninput=e=>{st.rf=+e.target.value;};
+  $('showT').onchange=e=>{$('trueT').hidden=!e.target.checked;};
+}
+bind();
+st.r1=+$('r1').value;st.r2=+$('r2').value;st.rf=+$('rf').value;st.k1=$('c1').checked;st.k2=$('c2').checked;
+st.T1=teq1();st.T2=calib(i2())+273;
+
+let cur={};
+function readings(){const R=RL(st.T1),I1=st.k1?U1s/(st.r1+R):0,U1=I1*R,IV=U1/RV,I2=i2();return{I1,U1,IV,I2,t2:calib(I2)};}
+
+function update(dt){
+  const a1=1-Math.exp(-dt/0.35),a2=1-Math.exp(-dt/0.25);
+  st.T1+=(teq1()-st.T1)*a1;
+  const T2eq=st.k2?calib(i2())+273:T0; st.T2+=(T2eq-st.T2)*a2;
+  cur=readings();
+  D1.off+=cur.I1*70*dt; D2.off+=cur.I2*90*dt; DV.off+=cur.IV*9000*dt;
+  drawDots(D1,cur.I1>0.001,true);drawDots(D2,cur.I2>0.001,true);drawDots(DV,cur.IV>1e-5,false);
+  $('w1').classList.toggle('on',st.k1);$('wv').classList.toggle('on',st.k1);$('w2').classList.toggle('on',st.k2);
+  $('k1b').setAttribute('y2',st.k1?100:78);$('k1b').setAttribute('x2',st.k1?148:142);
+  $('k2b').setAttribute('y2',st.k2?90:68);$('k2b').setAttribute('x2',st.k2?798:792);
+  // шамдар
+  const glow=(T)=>{const [r,g,b]=bbRGB(T);const v=Math.max(0,Math.min(1,(T-900)/1500));return{c:`rgb(${r},${g},${b})`,v};};
+  const g1=glow(st.T1),g2=glow(st.T2);
+  $('glow1').setAttribute('opacity',g1.v.toFixed(2));['gs1a','gs1b'].forEach(i=>$(i).setAttribute('stop-color',g1.c));
+  $('lamp1').setAttribute('fill',g1.v>0.05?g1.c:'var(--panel)');
+  $('glow2').setAttribute('opacity',(g2.v*.9).toFixed(2));['gs2a','gs2b'].forEach(i=>$(i).setAttribute('stop-color',g2.c));
+  $('lamp2').setAttribute('fill',g2.v>0.05?g2.c:'var(--panel)');
+  $('beam').setAttribute('opacity',g1.v.toFixed(2));
+  // реостат жүгіртпесі
+  const x1=190+8+(st.r1/30)*74;$('r1arrow').setAttribute('x1',x1);$('r1arrow').setAttribute('x2',x1);$('r1head').setAttribute('points',`${x1-5},338 ${x1+5},338 ${x1},331`);
+  const x2=735+8+(st.r2/15)*64;$('r2arrow').setAttribute('x1',x2);$('r2arrow').setAttribute('x2',x2);$('r2head').setAttribute('points',`${x2-5},378 ${x2+5},378 ${x2},371`);
+  // мәндер
+  $('tA1').textContent=cur.I1.toFixed(2)+' А';$('tV1').textContent=cur.U1.toFixed(2)+' В';$('tA2').textContent=cur.I2.toFixed(3)+' А';
+  $('tR1').textContent=st.r1.toFixed(1)+' Ом';
+  $('r1v').textContent=st.r1.toFixed(1)+' Ом';$('r2v').textContent=st.r2.toFixed(2)+' Ом';$('rfv').textContent=st.rf.toFixed(2)+' Ом';
+  $('mI1').textContent=cur.I1.toFixed(2);$('mU1').textContent=cur.U1.toFixed(2);$('mP').textContent=(cur.I1*cur.U1).toFixed(1);
+  $('mI2').textContent=cur.I2.toFixed(3);$('mT').textContent=st.k2?Math.round(cur.t2)+'':'—';
+  $('trueT').textContent=`Л₁: t = ${Math.round(st.T1-273)} °C (T = ${Math.round(st.T1)} К)`;
+  // маркер
+  const mi=Math.max(imin,Math.min(imax,cur.I2)),mt=Math.max(tmin,Math.min(tmax,cur.t2));
+  $('mkc').setAttribute('cx',sx(mi));$('mkc').setAttribute('cy',sy(mt));
+  $('mkv').setAttribute('x1',sx(mi));$('mkv').setAttribute('x2',sx(mi));$('mkv').setAttribute('y1',Y0);$('mkv').setAttribute('y2',sy(mt));
+  $('mkh').setAttribute('x1',X0);$('mkh').setAttribute('x2',sx(mi));$('mkh').setAttribute('y1',sy(mt));$('mkh').setAttribute('y2',sy(mt));
+  $('mk').style.display=st.k2?'':'none';
+  // статус
+  const s=$('status');let txt,cls='status';
+  const t1=st.T1-273,dT=st.T2-st.T1;
+  if(!st.k1||t1<700){txt='Л₁ қылы қызбаған: К₁ қосып, R₁-ді азайтыңыз';cls+=' warn';}
+  else if(!st.k2){txt='Пирометрлік шам өшірулі: К₂ қосыңыз';cls+=' warn';}
+  else if(Math.abs(dT)<4){txt='Қыл көрінбейді: жарықтықтар тең';cls+=' ok';}
+  else if(dT>0){txt='Л₂ қылы фоннан ашық: I₂ тогын азайтыңыз (R₂ немесе R көбейтіңіз)';}
+  else{txt='Л₂ қылы фоннан күңгірт: I₂ тогын көбейтіңіз (R₂ немесе R азайтыңыз)';}
+  if(st.k1&&t1>=700&&(t1<1400||t1>2000)) txt+='. Ескерту: Л₁ температурасы 1400–2000 °C шкаласынан тыс';
+  s.textContent=txt;s.className=cls;
+  drawEye();
+}
+
+let last=performance.now();
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+
+// ---- table ----
+let rows=[];
+try{rows=JSON.parse(localStorage.getItem('sb-rows')||'[]');}catch(e){rows=[];}
+function save(){try{localStorage.setItem('sb-rows',JSON.stringify(rows));}catch(e){}}
+function render(){const tb=$('tb');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="9" class="note" style="text-align:left">Әзірге жазба жоқ. Қылды теңестіріп, «Кестеге жазу» батырмасын басыңыз.</td></tr>';$('sum').innerHTML='';return;}
+  tb.innerHTML=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.I1.toFixed(2)}</td><td>${r.U1.toFixed(2)}</td><td>${(r.I1*r.U1).toFixed(2)}</td><td>${r.I2.toFixed(3)}</td><td>${Math.round(r.t)}</td><td>${Math.round(r.t+273)}</td><td>${(r.sig*1e8).toFixed(2)}</td><td class="x"><button data-i="${i}" aria-label="${i+1}-жолды өшіру">✕</button></td></tr>`).join('');
+  const m=rows.reduce((a,r)=>a+r.sig,0)/rows.length;
+  const sd=rows.length>1?Math.sqrt(rows.reduce((a,r)=>a+(r.sig-m)**2,0)/(rows.length-1)):0;
+  $('sum').innerHTML=`<span>⟨σ⟩ = ${(m*1e8).toFixed(2)}·10⁻⁸ Вт/(м²·К⁴)</span>`+(rows.length>1?`<span>Δσ = ±${(sd*1e8).toFixed(2)}·10⁻⁸</span>`:'')+`<span>Кестелік мән: 5,67·10⁻⁸</span><span>Салыстырмалы қателік: ${(Math.abs(m-SIG)/SIG*100).toFixed(1)} %</span>`;
+  tb.querySelectorAll('button').forEach(b=>b.onclick=()=>{rows.splice(+b.dataset.i,1);save();render();});}
+$('rec').onclick=()=>{const r=readings();
+  if(!st.k1||!st.k2||r.I1<=0){$('status').textContent='Жазу үшін екі кілт те тұйық болуы керек';return;}
+  const T=r.t2+273;const sig=r.I1*r.U1/(A*S*(T**4-T0**4));
+  rows.push({I1:r.I1,U1:r.U1,I2:r.I2,t:r.t2,sig});save();render();};
+$('clr').onclick=()=>{rows=[];save();render();};
+render();
+})();
+</script>
+
+</body></html>
